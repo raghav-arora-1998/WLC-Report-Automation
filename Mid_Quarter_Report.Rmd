@@ -1,0 +1,99 @@
+---
+title: ""
+date: "`r Sys.Date()`"
+output:
+  rmdformats::readthedown:
+    highlight: kate
+---
+
+```{r setup, include=FALSE}
+## Global options
+knitr::opts_chunk$set(cache = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(here)
+library(readxl)
+```
+
+```{r}
+attendance <- read_excel(here('Mid_Quart.xlsx'), sheet = 'Attendance')
+missed <- read_excel(here('Mid_Quart.xlsx'), sheet = 'Missed')
+```
+
+```{r}
+attendance <- attendance %>% 
+  relocate(`First Name`, .after = Team)
+
+missed <- missed %>% 
+  relocate(`First Name`, .after = Team)
+
+attendance$Name <- paste(attendance$`First Name`, attendance$`Last Name`)
+
+missed$Name <- paste(missed$`First Name`, missed$`Last Name`)
+
+attendance <- attendance %>% 
+  relocate(Name, .after = Team)
+
+missed <- missed %>% 
+  relocate(Name, .after = Team)
+
+attendance <- attendance[, -3]
+attendance <- attendance[, -3]
+
+missed <- missed[, -3]
+missed <- missed[, -3]
+```
+
+```{r}
+attend <- attendance %>% 
+  group_by(Team,Name) %>% 
+  summarise(attend = n())
+
+freq_cancel <- missed %>%
+  group_by(Team, Name) %>%
+  filter(`Cancel or No-show?` == "cancel") %>%
+  summarise(cancel = n())
+
+freq_noshow <- missed %>%
+  group_by(Team, Name) %>%
+  filter(`Cancel or No-show?` == "no-show") %>%
+  summarise(noshow = n())
+
+merged_df <- merge(merge(attend, freq_cancel, by = c("Team", "Name"), all = TRUE),
+             freq_noshow, by = c("Team", "Name"), all = TRUE)
+
+merged_df[is.na(merged_df)] <- 0
+
+merged_df
+  
+```
+
+```{r}
+attend1 <- attendance %>% 
+  group_by(Team) %>% 
+  summarise(attend1 = n())
+
+freq_cancel1 <- missed %>%
+  group_by(Team) %>%
+  filter(`Cancel or No-show?` == "cancel") %>%
+  summarise(cancel1 = n())
+
+freq_noshow1 <- missed %>%
+  group_by(Team) %>%
+  filter(`Cancel or No-show?` == "no-show") %>%
+  summarise(noshow1 = n())
+
+merged_df1 <- merge(merge(attend1, freq_cancel1, by = c("Team"), all = TRUE),
+             freq_noshow1, by = c("Team"), all = TRUE)
+
+merged_df1[is.na(merged_df1)] <- 0
+
+merged_df1
+
+```
+
+
+
+
